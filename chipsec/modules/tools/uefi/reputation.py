@@ -21,11 +21,12 @@ Usage:
 """
 import time
 
-from chipsec.module_common import BaseModule, ModuleResult, MTAG_BIOS
+from chipsec.module_common import BaseModule, BIOS
+from chipsec.library.returncode import ModuleResult
 from chipsec.hal.spi_uefi import search_efi_tree, build_efi_model, EFIModuleType
 from chipsec.hal.uefi import UEFI
 from chipsec.hal.spi import SPI, BIOS
-from chipsec.file import read_file
+from chipsec.library.file import read_file
 
 try:
     from virus_total_apis import PublicApi as VirusTotalPublicApi
@@ -33,7 +34,8 @@ try:
 except ImportError:
     has_virus_total_apis = False
 
-TAGS = [MTAG_BIOS]
+TAGS = [BIOS]
+METADATA_TAGS = ['OPENSOURCE', 'IA', 'TOOLS', 'UEFI', 'REPUTATION']
 
 DEF_FWIMAGE_FILE = 'fw.bin'
 
@@ -55,7 +57,6 @@ class reputation(BaseModule):
 
     def __init__(self):
         BaseModule.__init__(self)
-        self.rc_res = ModuleResult(0x556ec74, 'https://chipsec.github.io/modules/chipsec.modules.tools.uefi.reputation.html')
         self.uefi = UEFI(self.cs)
         self.image = None
         self.vt_threshold = 10
@@ -67,8 +68,6 @@ class reputation(BaseModule):
         else:
             self.logger.log_important("""Can't import module 'virus_total_apis'.
 Please run 'pip install virustotal-api' and try again.""")
-            self.rc_res.setStatusBit(self.rc_res.status.NOT_APPLICABLE)
-            self.res = self.rc_res.getReturnCode(ModuleResult.NOTAPPLICABLE)
             return False
 
     def reputation_callback(self, efi_module):
@@ -109,7 +108,7 @@ Please run 'pip install virustotal-api' and try again.""")
         if found:
             res = ModuleResult.WARNING
             self.logger.log_warning("Suspicious EFI binary found in the UEFI firmware image")
-            self.rc_res.setStatusBit(self.rc_res.status.POTENTIALLY_VULNERABLE)
+            self.result.setStatusBit(self.result.status.POTENTIALLY_VULNERABLE)
         else:
             self.logger.log_passed("Didn't find any suspicious EFI binary")
         return res
@@ -144,4 +143,4 @@ Please run 'pip install virustotal-api' and try again.""")
         self.image = read_file(image_file)
 
         self.res = self.check_reputation()
-        return self.rc_res.getReturnCode(self.res)
+        return self.result.getReturnCode(self.res)

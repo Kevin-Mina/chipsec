@@ -43,17 +43,21 @@ Examples:
 
 """
 
-from chipsec.module_common import BaseModule, ModuleResult
+from chipsec.module_common import BaseModule, CPU
+from chipsec.library.returncode import ModuleResult
 from chipsec.hal.vmm import VMM
 
 EVENT_CHANNEL_OP = 32
 EVTCHOP_INIT_CONTROL = 11
 
+TAGS = [CPU]
+METADATA_TAGS = ['OPENSOURCE', 'IA', 'TOOLS', 'VMM', 'XEN', 'XSA188']
+
 
 class xsa188(BaseModule):
     def __init__(self):
         BaseModule.__init__(self)
-        self.rc_res = ModuleResult(0x13a3575, 'https://chipsec.github.io/modules/chipsec.modules.tools.vmm.xen.xsa188.html')
+        self.result.url = 'https://chipsec.github.io/modules/chipsec.modules.tools.vmm.xen.xsa188.html'
 
     def run(self, module_argv):
         self.logger.start_test('Xen XSA-188 PoC check')
@@ -66,6 +70,6 @@ class xsa188(BaseModule):
 
         self.logger.log_information('Module completed')
         self.logger.log_warning('System may be in an unknown state, further evaluation may be needed.')
-        self.rc_res.setStatusBit(self.rc_res.status.POTENTIALLY_VULNERABLE)
-        self.res = self.rc_res.getReturnCode(ModuleResult.WARNING)
+        self.result.setStatusBit(self.result.status.POTENTIALLY_VULNERABLE)
+        self.res = self.result.getReturnCode(ModuleResult.WARNING)
         return self.res
